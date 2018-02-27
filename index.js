@@ -26,7 +26,6 @@ request(url, function(error, response, html){
 
         var title, release, rating;
         var json = { title : "", release : "", rating : ""};
-        console.log($);
         console.log(json);
         // We'll use the unique header class as a starting point.
 
