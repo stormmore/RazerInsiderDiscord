@@ -41,7 +41,6 @@ const GetRazerInsider = function(){
     setTimeout(()=>{
         console.log(articles[0].title);
         console.log(articles[0].description);
-        console.log(articles[0].image);
         var guild = client.guilds.get("371593789967564802");
         var channel = guild.channels.get("399879715642408960");
         channel.send(articles[0].title);
