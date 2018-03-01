@@ -4,12 +4,12 @@ const TurndownService = require('turndown');
 const cheerio = require('cheerio');
 
 // TEST DISCORD
-const GUILD = "411239555421962240";
-const CHANNEL = "411239555421962243";
+// const GUILD = "411239555421962240";
+// const CHANNEL = "411239555421962243";
 
 // RAZER DISCORD
-// const GUILD = "342761229544194048";
-// const CHANNEL = "416027296881704970";
+const GUILD = "342761229544194048";
+const CHANNEL = "416027296881704970";
 
 const HOST = "https://insider.razerzone.com/";
 const THREADURL = "https://insider.razerzone.com/index.php?forums/razer-chroma.78/&order=post_date";
