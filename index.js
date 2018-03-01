@@ -27,59 +27,17 @@ module.exports = (context, cb) => {
         GetRazerInsider();
     });
 
+    // Read the token from the webtask context/secret
     client.login(context.data.botToken);
-    
-    function sendArticle(article) {
-        var guild = client.guilds.get(GUILD);
-        var channel = guild.channels.get(CHANNEL);
-        const message = {embed: {
-            color: 3447003,
-            author: {
-                name: article.poster,
-                icon_url: article.posterImage
-            },
-            title: article.title,
-            url: article.url,
-            description: article.data.markdown.replace("\\[MEDIA\\]","").replace("\\[ATTACH\\]",""),
-            timestamp: article.date,
-            footer: {
-                icon_url: article.posterImage,
-                text: "Posted on Insider"
+
+    async function GetRazerInsider(){
+        const url = THREADURL;
+        request(url, async (error, response, html) => {
+            if (!error && response.statusCode == 200) {
+                await handleRazerInsiderResponse(html);
             }
-        }};
-        channel.send(message);
-    }
-
-    function getPreviewText(url) {
-        return new Promise((res, rej) => {
-            request(url + "&_xfResponseType=json", async function (error, response, html) {
-                if (error || response.statusCode !== 200) return rej(error);
-                let result = JSON.parse(response.body);
-                let $ = cheerio.load(result.templateHtml);
-                result = $(".previewText").html();
-                res({markdown: turndownService.turndown(result), html: result});
-            });
         });
-    }
-
-    function getStore() {
-        return new Promise((res, rej) => {
-            context.storage.get(function(error, data) {
-                if (error) return rej(error);
-                data = data || { last: 0 };
-                res(data);
-            });
-        });
-    }
-
-    function setStore(data) {
-        return new Promise((res, rej) => {
-            context.storage.set(data, function (error) {
-                if(error) rej(error);
-                res();
-            });
-        });
-    }
+    };
 
     async function handleRazerInsiderResponse(html) {
         var $ = cheerio.load(html);
@@ -123,8 +81,11 @@ module.exports = (context, cb) => {
             // Wait for all requests to finish.
             await Promise.all(promises);
             store.last = articles[0].id;
+
+            // Save last id to store
             await setStore(store);
 
+            // Finally send all Articles we got
             for(const article of articles) {
                 sendArticle(article);
             }
@@ -134,17 +95,57 @@ module.exports = (context, cb) => {
         } catch (ex) {
             cb(ex);
         }
-
     }
 
-    
-    async function GetRazerInsider(){
-        const url = THREADURL;
-        request(url, async (error, response, html) => {
-            if (!error && response.statusCode == 200) {
-                await handleRazerInsiderResponse(html);
-            }
+    function getPreviewText(url) {
+        return new Promise((res, rej) => {
+            request(url + "&_xfResponseType=json", async function (error, response, html) {
+                if (error || response.statusCode !== 200) return rej(error);
+                let result = JSON.parse(response.body);
+                let $ = cheerio.load(result.templateHtml);
+                result = $(".previewText").html();
+                res({markdown: turndownService.turndown(result), html: result});
+            });
         });
-    };
-};
+    }
+    
+    function sendArticle(article) {
+        var guild = client.guilds.get(GUILD);
+        var channel = guild.channels.get(CHANNEL);
+        const message = {embed: {
+            color: 3447003,
+            author: {
+                name: article.poster,
+                icon_url: article.posterImage
+            },
+            title: article.title,
+            url: article.url,
+            description: article.data.markdown.replace("\\[MEDIA\\]","").replace("\\[ATTACH\\]",""),
+            timestamp: article.date,
+            footer: {
+                icon_url: article.posterImage,
+                text: "Posted on Insider"
+            }
+        }};
+        channel.send(message);
+    }
 
+    function getStore() {
+        return new Promise((res, rej) => {
+            context.storage.get(function(error, data) {
+                if (error) return rej(error);
+                data = data || { last: 0 };
+                res(data);
+            });
+        });
+    }
+
+    function setStore(data) {
+        return new Promise((res, rej) => {
+            context.storage.set(data, function (error) {
+                if(error) rej(error);
+                res();
+            });
+        });
+    }
+};
