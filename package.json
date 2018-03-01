@@ -1,0 +1,17 @@
+{
+  "name": "razerinsiderdiscord",
+  "version": "1.0.0",
+  "description": "Sends Razer insider posts to discord",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "discord.js": "^11.3.0",
+    "request": "^2.83.0",
+    "turndown": "^4.0.1"
+  }
+}
