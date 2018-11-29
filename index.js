@@ -14,7 +14,6 @@ const CHANNEL = "416027296881704970";
 const HOST = "https://insider.razerzone.com/";
 const THREADURL = "https://insider.razerzone.com/index.php?forums/razer-chroma.78/&order=post_date";
 
-
 /**
 * @param context {WebtaskContext}
 */
@@ -45,6 +44,7 @@ module.exports = (context, cb) => {
         let store = await getStore();
 
         var articles = [];
+        var art_ids = [];
 
         // Get all discussionListItems from HTML
         var items = $(".discussionListItems li");
@@ -60,8 +60,11 @@ module.exports = (context, cb) => {
             article.url = HOST + $(item).find(".main .titleText .title a").attr("href");
             article.previewurl = HOST + $(item).find(".main .titleText .title a").data("previewurl");
             // If we already processed the item then we're done with all new items
-            if(article.id <= store.last) return false;
-            articles.push(article);
+            if(!store.includes(article.id)) {
+                articles.push(article);
+            } else {
+                art_ids.push(article.id);
+            }
         });
 
         if(articles.length <= 0) {
@@ -69,6 +72,8 @@ module.exports = (context, cb) => {
             cb(null, "");
             return;
         }
+
+        await setStore(art_ids);
 
         // Request the Preview for the item
         let promises = [];
@@ -80,14 +85,14 @@ module.exports = (context, cb) => {
         try {
             // Wait for all requests to finish.
             await Promise.all(promises);
-            store.last = articles[0].id;
-
-            // Save last id to store
-            await setStore(store);
 
             // Finally send all Articles we got
             for(const article of articles) {
                 sendArticle(article);
+                
+                // Save store id as sent
+                art_ids.push(article.id)
+                await setStore(art_ids);
             }
 
             // The task is done.
@@ -134,7 +139,7 @@ module.exports = (context, cb) => {
         return new Promise((res, rej) => {
             context.storage.get(function(error, data) {
                 if (error) return rej(error);
-                data = data || { last: 0 };
+                data = data || [];
                 res(data);
             });
         });
